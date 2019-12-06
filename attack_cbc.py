@@ -1,6 +1,10 @@
 from typing import Callable, Optional
 
 
+class InvalidLength(Exception):
+    pass
+
+
 def xor(a: bytearray, b: bytearray) -> bytearray:
     return bytearray([x ^ y for x, y in zip(a, b)])
 
@@ -77,7 +81,9 @@ def encrypt(
         decryption to be effective. Otherwise, it returns the plaintext with
         a prepended "garbage" block for the decryption to be effective.
     """
-    assert(len(plaintext) % block_size == 0)
+    if len(plaintext) % block_size != 0:
+        raise InvalidLength(
+                f"Length {len(plaintext)} is not a multiple of {block_size}")
     blocks = [plaintext[i:i+block_size]
               for i in range(0, len(plaintext), block_size)]
 
@@ -136,7 +142,10 @@ def decrypt(
         If an IV is supplied, returns the decrypted plaintext in its entirety.
         Otherwise, returns the decrypted plaintext without the first block.
     """
-    assert(len(ciphertext) % block_size == 0)
+    if len(ciphertext) % block_size != 0:
+        raise InvalidLength(f"Ciphertext length {len(ciphertext)} is "
+                            f"not a multiple of {block_size}")
+
     blocks = [ciphertext[i:i+block_size] for i in range(0,
                                                         len(ciphertext),
                                                         block_size)]
@@ -146,6 +155,9 @@ def decrypt(
     if iv is None:
         c0, blocks = blocks[0], blocks[1:]
     else:
+        if len(iv) != block_size:
+            raise InvalidLength(f"IV length {len(iv)} is not equal to"
+                                f"{block_size}")
         c0 = iv
 
     plaintext = bytearray()
