@@ -25,10 +25,30 @@ def intermediate_from_block(
 
 def encrypt(
         plaintext: bytearray,
-        iv: Optional[bytearray],
         oracle: Callable[[bytearray], bool],
+        can_set_iv: bool = False,
         block_size: int = 16):
-    pass
+    assert(len(plaintext) % block_size == 0)
+    blocks = [plaintext[i:i+block_size]
+              for i in range(0, len(plaintext), block_size)]
+    if can_set_iv:
+        first_plaintext_block, blocks = blocks[0], blocks[1:]
+    block = bytearray(block_size)
+    ciphertext = bytearray(block)
+
+    for n, c2 in enumerate(reversed(blocks)):
+        print(f"Encrypting block {n+1} of {len(blocks)}", end='\r')
+        block = xor(intermediate_from_block(block, oracle, block_size), c2)
+        ciphertext = block + ciphertext
+    print()
+    if can_set_iv:
+        decrypted_first_ciphertext_block = decrypt(ciphertext[:block_size],
+                                                   bytearray(16),
+                                                   oracle,
+                                                   block_size)
+        return (ciphertext,
+                xor(decrypted_first_ciphertext_block, first_plaintext_block))
+    return ciphertext
 
 
 def decrypt(
@@ -47,8 +67,9 @@ def decrypt(
 
     plaintext = bytearray()
     for n, c2 in enumerate(blocks):
-        print(f"Decrypting block {n} of {len(blocks)}")
+        print(f"Decrypting block {n+1} of {len(blocks)}", end='\r')
         plaintext.extend(xor(intermediate_from_block(c2, oracle, block_size),
                              c0))
         c0 = c2
+    print()
     return plaintext
