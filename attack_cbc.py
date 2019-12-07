@@ -15,14 +15,14 @@ def intermediate_from_block(
         block_size: int) -> bytearray:
     """Derives intermediate bytes with the padding oracle.
 
-    Analyses the block using the oracle to get its intermediary,
+    Attacks the block using the oracle to get its intermediary,
     i.e. the decrypted block before it is XORed with the preceding
     ciphertext block. This function should not be called externally,
     please refer to either encrypt or decrypt.
 
     Args:
         block: A block of block_size length
-        oracle: A user-specified callback function of the following
+        oracle: A user-defined callback function of the following
             specification:
             Args:
                 data: The data to be decrypted.
@@ -64,7 +64,7 @@ def encrypt(
     Args:
         plaintext: A bytearray containing the target plaintext to
             be encrypted.
-        oracle: A user-specified callback function of the following
+        oracle: A user-defined callback function of the following
             specification:
             Args:
                 data: The data to be decrypted.
@@ -91,7 +91,7 @@ def encrypt(
     # first plaintext block for later calculation, and leave out the first
     # block in the final ciphertext.
     if can_set_iv:
-        first_plaintext_block, blocks = blocks[0], blocks[1:]
+        p0, blocks = blocks[0], blocks[1:]
 
     # Set the last block of the ciphertext to garbage (null); the plaintext
     # can be manipulated with the perceding blocks.
@@ -99,22 +99,20 @@ def encrypt(
     ciphertext = bytearray(block)
 
     # Work backwards since we want C_n-1 = Dec(C_n) ^ P_n.
-    for n, c2 in enumerate(reversed(blocks)):
+    for n, p1 in enumerate(reversed(blocks)):
         print(f"Encrypting block {n+1} of {len(blocks)}", end='\r')
-        block = xor(intermediate_from_block(block, oracle, block_size), c2)
+        block = xor(intermediate_from_block(block, oracle, block_size), p1)
         ciphertext = block + ciphertext
 
     print()
 
-    # Decrypt the "garbage" block with a null IV to calculate a different
+    # Decrypt the "garbage" block to calculate a different
     # IV such that Dec(C) ^ IV = P.
     if can_set_iv:
-        decrypted_first_ciphertext_block = decrypt(ciphertext[:block_size],
-                                                   bytearray(16),
-                                                   oracle,
-                                                   block_size)
-        return (ciphertext, xor(decrypted_first_ciphertext_block,
-                                first_plaintext_block))
+        d0 = intermediate_from_block(ciphertext[:block_size],
+                                     oracle,
+                                     block_size)
+        return (ciphertext, xor(d0, p0))
     return ciphertext
 
 
@@ -129,7 +127,7 @@ def decrypt(
         ciphertext: A bytearray containing the target ciphertext to
             be encrypted.
         iv: Either a known IV, or None.
-        oracle: A user-specified callback function of the following
+        oracle: A user-defined callback function of the following
             specification:
             Args:
                 data: The data to be decrypted.
