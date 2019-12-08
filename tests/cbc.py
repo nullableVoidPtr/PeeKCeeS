@@ -1,7 +1,7 @@
 import random
 from Crypto.Cipher import AES
-import attack_cbc
 import pytest
+from peekcees import cbc
 
 EXAMPLE_TEXT = """Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
@@ -54,23 +54,23 @@ def oracle(ciphertext):
 
 
 def test_invalid_ciphertext_length():
-    with pytest.raises(attack_cbc.InvalidLength):
-        attack_cbc.decrypt(bytearray(33), bytearray(16), oracle)
+    with pytest.raises(cbc.InvalidLength):
+        cbc.decrypt(bytearray(33), bytearray(16), oracle)
 
 
 def test_invalid_plaintext_length():
-    with pytest.raises(attack_cbc.InvalidLength):
-        attack_cbc.encrypt(bytearray(33), oracle)
+    with pytest.raises(cbc.InvalidLength):
+        cbc.encrypt(bytearray(33), oracle)
 
 
 def test_invalid_iv_length():
-    with pytest.raises(attack_cbc.InvalidLength):
-        attack_cbc.decrypt(bytearray(32), bytearray(15), oracle)
+    with pytest.raises(cbc.InvalidLength):
+        cbc.decrypt(bytearray(32), bytearray(15), oracle)
 
 
 def test_simple_oracle_decrypt():
     ciphertext = encrypt(EXAMPLE_TEXT, KEY, IV)
-    plaintext_attempt = unpad_pkcs7(attack_cbc.decrypt(ciphertext,
+    plaintext_attempt = unpad_pkcs7(cbc.decrypt(ciphertext,
                                                        None,
                                                        oracle))
     assert plaintext_attempt == EXAMPLE_TEXT[16:]
@@ -78,16 +78,16 @@ def test_simple_oracle_decrypt():
 
 def test_simple_oracle_decrypt_with_iv():
     ciphertext = encrypt(EXAMPLE_TEXT, KEY, IV)
-    plaintext_attempt = unpad_pkcs7(attack_cbc.decrypt(ciphertext, IV, oracle))
+    plaintext_attempt = unpad_pkcs7(cbc.decrypt(ciphertext, IV, oracle))
     assert plaintext_attempt == EXAMPLE_TEXT
 
 
 def test_simple_oracle_encrypt():
-    ciphertext_attempt = attack_cbc.encrypt(pad_pkcs7(EXAMPLE_TEXT), oracle)
+    ciphertext_attempt = cbc.encrypt(pad_pkcs7(EXAMPLE_TEXT), oracle)
     assert decrypt(ciphertext_attempt, KEY, IV)[16:] == EXAMPLE_TEXT
 
 
 def test_simple_oracle_encrypt_with_iv():
     ciphertext_attempt, iv_attempt = \
-        attack_cbc.encrypt(pad_pkcs7(EXAMPLE_TEXT), oracle, True)
+        cbc.encrypt(pad_pkcs7(EXAMPLE_TEXT), oracle, True)
     assert decrypt(ciphertext_attempt, KEY, iv_attempt) == EXAMPLE_TEXT
