@@ -1,4 +1,9 @@
-from typing import Callable, Optional
+"""Attack decryption endpoints vulnerable to the padding oracle
+attack, by decrypting arbitrary ciphertext or encrypting arbitrary
+plaintext.
+"""
+
+from typing import Callable, Optional, Union, Tuple
 
 
 class InvalidLength(Exception):
@@ -58,7 +63,7 @@ def encrypt(
         plaintext: bytearray,
         oracle: Callable[[bytearray], bool],
         can_set_iv: bool = False,
-        block_size: int = 16):
+        block_size: int = 16) -> Union[bytearray, Tuple[bytearray, bytearray]]:
     """Encrypts plaintext using a padding oracle attack.
 
     Args:
@@ -68,6 +73,7 @@ def encrypt(
             specification:
             Args:
                 data: The data to be decrypted.
+
             Returns:
                 The result of the padding oracle; False if a padding error
                 occured, True otherwise (i.e. on a successful decryption).
@@ -131,6 +137,7 @@ def decrypt(
             specification:
             Args:
                 data: The data to be decrypted.
+
             Returns:
                 The result of the padding oracle; False if a padding error
                 occured, True otherwise (i.e. on a successful decryption).
