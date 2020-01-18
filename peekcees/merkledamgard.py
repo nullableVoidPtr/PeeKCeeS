@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 """Append arbitrary data validated with insecure message authentication
 codes that use Merkle-Damgård hash functions using the length extension
 attack.
@@ -62,7 +64,10 @@ def mac_forge(
     return (padder(data, secret_len) + suffix, updater(hash, suffix))
 
 
-def md5_pad(data: bytearray, secret_len: int) -> bytearray:
+def md5_pad(
+        data: bytearray,
+        secret_len: int) -> bytearray:
+
     length = len(data) + secret_len
     data += b'\x80'
     while length % 64 != 56:
@@ -71,5 +76,8 @@ def md5_pad(data: bytearray, secret_len: int) -> bytearray:
     return data
 
 
-def md5_update(hash: bytearray, data: bytearray) -> bytearray:
+def md5_update(
+        hash: bytearray,
+        data: bytearray) -> bytearray:
+
     pass
