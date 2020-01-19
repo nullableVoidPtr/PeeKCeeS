@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 import random
 from Crypto.Cipher import AES
 import pytest

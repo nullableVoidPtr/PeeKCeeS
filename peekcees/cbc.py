@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 """Attack decryption endpoints vulnerable to the padding oracle
 attack, by decrypting arbitrary ciphertext or encrypting arbitrary
 plaintext.
@@ -34,7 +36,7 @@ def intermediate_from_block(
             Returns:
                 The result of the padding oracle; False if a padding error
                 occured, True otherwise (i.e. on a successful decryption).
-        block_size: The block size of the targetted encryption algorithm.
+        block_size: The block size of the targeted encryption algorithm.
     """
     assert(len(block) == block_size)
     i1 = bytearray(block_size)
